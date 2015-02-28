@@ -1,5 +1,5 @@
-x <- read.table("ex2x.dat")
-y <- read.table("ex2y.dat")
+x <- read.table("data/ex2x.dat")
+y <- read.table("data/ex2y.dat")
 
 ft <- lm(y[,1]~x[,1])
 ft

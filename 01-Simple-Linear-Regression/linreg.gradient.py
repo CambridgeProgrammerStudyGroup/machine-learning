@@ -2,6 +2,7 @@
 
 import numpy as np
 
+# Implementation based on Ex. 1 in https://www.coursera.org/course/ml
 def gradDescent(x, y, theta, alpha, m, nIter):
     loss = 0
     for i in range(0, nIter):
