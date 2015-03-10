@@ -15,8 +15,8 @@ def gradDescent(x, y, theta, alpha, m, nIter):
     print("After %d iterations, cost is %f" % (nIter, cost))
     return theta
 
-y = np.loadtxt('data/ex2y.dat')
-x = np.loadtxt('data/ex2x.dat')
+y = np.loadtxt('../data/ex2y.dat')
+x = np.loadtxt('../data/ex2x.dat')
 
 on = np.ones(np.shape(x))
 # append ones for offset
