@@ -88,7 +88,7 @@ class NeuralNetwork:
 
     def predict(self, X): 
         nrows = X.shape[0]
-        A = [ [] for x in range(nrows) ]
+        A = [ np.zeros(x.shape) for x in X ]
         for n in range(nrows):
             # add bias
             a = np.concatenate((np.ones(1).T, np.array(X[n])), axis=1)      
@@ -105,8 +105,8 @@ if __name__ == '__main__':
 
     act='sigmoid'
     nhidden=50
-    #ep=100
-    ep=5
+    ep=200
+    #ep=5
 
     start = time.time()
     X = pd.read_csv('../training.csv')
