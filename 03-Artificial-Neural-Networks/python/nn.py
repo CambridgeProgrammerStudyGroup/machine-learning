@@ -1,7 +1,5 @@
 
 import numpy as np
-#import time
-
 import cost as cst
 
 # Neural network with backpropagation. Inspired by

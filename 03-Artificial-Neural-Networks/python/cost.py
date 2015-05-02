@@ -1,19 +1,16 @@
-# http://neuralnetworksanddeeplearning.com
+# Source: http://neuralnetworksanddeeplearning.com
+
+import numpy as np
 
 class QuadraticCost:
 
     @staticmethod
     def fn(a, y):
-        """Return the cost associated with an output ``a`` and desired output
-        ``y``.
-
-        """
         return 0.5*np.linalg.norm(a-y)**2
 
     @staticmethod
-    def delta(z, a, y):
-        """Return the error delta from the output layer."""
-        return (a-y) * sigmoid_prime_vec(z)
+    def delta(z, a, y, fn):
+        return (a-y) * fn(z)
 
 class CrossEntropyCost:
 
@@ -30,12 +27,7 @@ class CrossEntropyCost:
         return np.sum(np.nan_to_num(-y*np.log(a)-(1-y)*np.log(1-a)))
 
     @staticmethod
-    def delta(z, a, y):
-        """Return the error delta from the output layer.  Note that the
-        parameter ``z`` is not used by the method.  It is included in
-        the method's parameters in order to make the interface
-        consistent with the delta method for other cost classes.
-
-        """
+    def delta(z, a, y, fn):
+        # z, fn not used.
         return (a-y)
 

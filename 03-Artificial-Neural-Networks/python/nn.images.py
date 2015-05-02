@@ -47,36 +47,42 @@ def main():
     else:
         act = 'sigmoid'
         nhidden = 50
-        #ep = 200
-        ep=5
+        ep = 200
+        #ep=5
 
         start = time.time()
+        ntrain = 14000 # grab this many training data examples
         Xtrain = pd.read_csv('../training.csv')
-        labels = np.array(Xtrain)[:, 0]
-        features = np.array(Xtrain)[:, 1:].astype(float) / 256
+        Xtrain_arr = np.array(Xtrain)
+        labels_train = Xtrain_arr[:ntrain, 0]
+        features_train = Xtrain_arr[:ntrain, 1:].astype(float) / 256
+        
+        labels_valid = Xtrain_arr[ntrain:, 0]
+        features_valid = Xtrain_arr[ntrain:, 1:].astype(float) / 256
 
-        nrows = features.shape[0]
-        nfeatures = features.shape[1]
+        ntrain = features_train.shape[0]
+        nvalid = features_valid.shape[0]
+        nfeatures = features_valid.shape[1]
         nlabels = 10
 
-        labels_expanded = np.zeros((nrows, nlabels))
-        for i in xrange(nrows):
-                labels_expanded[i][labels[i]] = 1
+        labels_train_expanded = np.zeros((ntrain, nlabels))
+        for i in xrange(ntrain):
+                labels_train_expanded[i][labels_train[i]] = 1
         end = time.time()
 
-        print "Read ",nrows," training examples"
-        print "Features",nfeatures
-        print "Time elapsed ",(end-start)
+        print "Read %d training examples" % (Xtrain_arr.shape[0])
+        print "Features=%d" % nfeatures
+        print "Time elapsed=%f" % (end-start)
 
         start = time.time()
         nnet = nn.NeuralNetwork([nfeatures,nhidden,nlabels],activation=act)
-        nnet.fit(features, labels_expanded, max_iter=ep)
+        nnet.fit(features_train, labels_train_expanded, max_iter=ep)
         end = time.time()
         print "Time elapsed ",(end-start)
 
-        preds = nnet.predict_label(features)
-        ncorrect = np.sum(preds == labels)
-        print "%f%% percent correct on training set" % (100.0 * ncorrect / nrows)
+        preds_valid = nnet.predict_label(features_valid)
+        ncorrect = np.sum(preds_valid == labels_valid)
+        print "%f percent correct on validation set" % (100.0 * ncorrect / nvalid)
         
         print "Predicting test data"
         Xtest = pd.read_csv('../testing.csv')
