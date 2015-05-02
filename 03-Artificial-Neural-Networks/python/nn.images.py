@@ -1,10 +1,9 @@
 #!/usr/bin/env python
 
 # TODO:
-# * train in batches
+# * train in batches, implement stochastic gradient descent
 # * customize error function
-# * proper command line parsing
-# * look at misclassified images
+# * proper crossvalidation
 
 import nn
 import numpy as np
@@ -48,13 +47,13 @@ def main():
     else:
         act = 'sigmoid'
         nhidden = 50
-        ep = 200
-        #ep=5
+        #ep = 200
+        ep=5
 
         start = time.time()
-        X = pd.read_csv('../training.csv')
-        labels = np.array(X)[:, 0]
-        features = np.array(X)[:, 1:].astype(float) / 256
+        Xtrain = pd.read_csv('../training.csv')
+        labels = np.array(Xtrain)[:, 0]
+        features = np.array(Xtrain)[:, 1:].astype(float) / 256
 
         nrows = features.shape[0]
         nfeatures = features.shape[1]
@@ -75,16 +74,16 @@ def main():
         end = time.time()
         print "Time elapsed ",(end-start)
 
-        """
-        num_examples = 20
-        print "Showing ",num_examples," examples"
-        for i in range(0,num_examples):
-            print (whichIsOne(y[i]),whichIsOne(nn.predict(X[i])))
-        """
         preds = nnet.predict_label(features)
         ncorrect = np.sum(preds == labels)
         print "%f%% percent correct on training set" % (100.0 * ncorrect / nrows)
-
+        
+        print "Predicting test data"
+        Xtest = pd.read_csv('../testing.csv')
+        features_test = np.array(Xtest).astype(float) / 256
+        preds_test = nnet.predict_label(features_test)
+        np.savetxt("predictions.csv",preds_test,fmt='%d',delimiter=",")
+        print "All done"
 
 if __name__ == '__main__':
     main()
