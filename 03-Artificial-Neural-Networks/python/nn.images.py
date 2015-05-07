@@ -44,6 +44,7 @@ def main():
         pred = np.round(nnet.predict(Xtrain))
         ncorrect = np.sum(pred == ytrain)
         print "%f%% percent correct on training set" % (100.0 * ncorrect / nrows)
+        print "Learned weights:",nnet
     else:
         act = 'sigmoid'
         nhidden = 50

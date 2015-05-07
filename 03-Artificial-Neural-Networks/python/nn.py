@@ -97,3 +97,6 @@ class NeuralNetwork:
     def predict_label(self, X):
         preds = self.predict(X)
         return np.argmax(preds, axis=1)
+    
+    def __str__(self):
+        return str(self.weights)
