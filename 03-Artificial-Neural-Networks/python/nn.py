@@ -1,7 +1,5 @@
 
 import numpy as np
-import time
-
 import cost as cst
 
 # Neural network with backpropagation. Inspired by
@@ -41,26 +39,8 @@ class NeuralNetwork:
         # output layer
         self.weights[i+1] = np.random.randn(layout[nw-1]+1,layout[nw])
 
-    def fit(self, X, y, alpha=0.2, max_iter=100):
-
-        nrows = X.shape[0]
-        ones = np.atleast_2d(np.ones(nrows))
-        X = np.concatenate((ones.T, X), axis=1)
-
-        for k in range(max_iter):
-            if k % 10 == 0:
-                print 'iteration:', k, ' out of ', max_iter
-
-            # shuffle data
-            p = np.random.permutation(nrows)
-            _X = X[p]
-            _y = y[p]
-
-            for i in range(nrows):
-                backprop(_X[i],_y[i], alpha)
-
     def backprop(self,x,y,alpha):
-        a = [X]
+        a = [x]
         nweights = len(self.weights)
         for l in range(nweights):
             dot_value = np.dot(a[l], self.weights[l])
@@ -83,6 +63,25 @@ class NeuralNetwork:
             delta = np.atleast_2d(deltas[i])
             self.weights[i] += alpha * layer.T.dot(delta)
 
+    def fit(self, X, y, alpha=0.2, max_iter=100):
+
+        nrows = X.shape[0]
+        ones = np.atleast_2d(np.ones(nrows))
+        X = np.concatenate((ones.T, X), axis=1)
+
+        for k in range(max_iter):
+            if k % 10 == 0:
+                print 'iteration:', k, ' out of ', max_iter
+
+            # shuffle data
+            p = np.random.permutation(nrows)
+            _X = X[p]
+            _y = y[p]
+
+            for i in range(nrows):
+                self.backprop(_X[i],_y[i], alpha)
+
+    # computes a real-valued output
     def predict(self, X):
         nrows = X.shape[0]
         A = [ np.zeros(x.shape) for x in X ]
@@ -93,7 +92,11 @@ class NeuralNetwork:
                 a = self.activation(np.dot(a, self.weights[l]))
             A[n] = a
         return A
-
+    
+    # computes a integer output (label)
     def predict_label(self, X):
         preds = self.predict(X)
         return np.argmax(preds, axis=1)
+    
+    def __str__(self):
+        return str(self.weights)
