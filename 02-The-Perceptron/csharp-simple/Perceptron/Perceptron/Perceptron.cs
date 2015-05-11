@@ -12,11 +12,11 @@ namespace Perceptron
         private const double TrainingConstant = 0.1d;
         private readonly Func<double, double> _activationFunction;
 
-        public Perceptron(IEnumerable<double> weights, double biasWeight, Func<double, double> activationFuntion)
+        public Perceptron(IEnumerable<double> weights, double biasWeight, Func<double, double> activationFunction)
         {
             Weights = weights;
             BiasWeight = biasWeight;
-            _activationFunction = activationFuntion;
+            _activationFunction = activationFunction;
         }
 
         public double GetOutput(IEnumerable<double> inputs)
