@@ -40,9 +40,18 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Output.cs" />
+    <Compile Include="Synapse.cs" />
+    <Compile Include="BiasInput.cs" />
+    <Compile Include="ISynapse.cs" />
+    <Compile Include="IInput.cs" />
+    <Compile Include="SensoryInput.cs" />
+    <Compile Include="SigmoidActivation.cs" />
+    <Compile Include="IActivationFunction.cs" />
     <Compile Include="INeuron.cs" />
     <Compile Include="Neuron.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Util.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

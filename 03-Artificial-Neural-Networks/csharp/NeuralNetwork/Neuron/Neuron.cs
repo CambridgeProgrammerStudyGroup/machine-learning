@@ -6,37 +6,32 @@ namespace Neuron
 {
     public class Neuron : INeuron
     {
-        public IEnumerable<double> Weights { get; private set; }
-        public double BiasWeight { get; private set; }
-        private const double BiasValue = 1.0d;
-        private const double TrainingConstant = 0.1d;
-        private readonly Func<double, double> _activationFunction;
-        
-        public Neuron(IEnumerable<double> weights, double biasWeight, Func<double, double> activationFunction)
+        public double Error { get; private set; }
+        public List<ISynapse> Inputs { get; private set; }
+
+        private readonly IActivationFunction _activationFunction;
+
+        public Neuron(IActivationFunction activationFunction)
         {
-            Weights = weights;
-            BiasWeight = biasWeight;
             _activationFunction = activationFunction;
+            Inputs = new List<ISynapse>();
         }
 
-        public double GetOutput(IEnumerable<double> inputs)
+        public void RegisterInput(IInput input)
         {
-            var signals = Weights.Zip(inputs, (weight, input) => weight * input);
-            var output = signals.Sum() + (BiasValue * BiasWeight);
-            return _activationFunction(output);
+            Inputs.Add(new Synapse(input));
         }
 
-        public void Train(IEnumerable<double> inputs, Func<double> errorFunction)
+        public double GetValue()
         {
-            var listInputs = inputs.ToList();
-            double error = errorFunction();
-            Weights = Weights.Zip(listInputs, (weight, input) => ComputeNewWeight(weight, error, input)).ToList();
-            BiasWeight = ComputeNewWeight(BiasWeight, error, BiasValue);
+            var output = Inputs.Sum(i => i.GetValue());
+            return _activationFunction.Activate(output);
         }
 
-        private double ComputeNewWeight(double weight, double error, double input)
+        public void Train(double error)
         {
-            return weight + (TrainingConstant * error * input);
+            Error = error;
+            Inputs.ForEach(a => a.UpdateWeight(Error));
         }
     }
 }

@@ -1,11 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace Neuron
 {
-    public interface INeuron
+    public interface INeuron : IInput
     {
-        double GetOutput(IEnumerable<double> inputs);
-        void Train(IEnumerable<double> inputs, Func<double> errorFunction);
+        double Error { get; }
+        List<ISynapse> Inputs { get; }
+        void Train(double error);
+        void RegisterInput(IInput input);
     }
 }
