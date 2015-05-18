@@ -63,6 +63,8 @@ class NeuralNetwork:
             delta = np.atleast_2d(deltas[i])
             self.weights[i] += alpha * layer.T.dot(delta)
 
+        return error
+
     def fit(self, X, y, alpha=0.2, max_iter=100):
 
         nrows = X.shape[0]
@@ -70,16 +72,23 @@ class NeuralNetwork:
         X = np.concatenate((ones.T, X), axis=1)
 
         for k in range(max_iter):
-            if k % 10 == 0:
-                print 'iteration:', k, ' out of ', max_iter
 
             # shuffle data
             p = np.random.permutation(nrows)
             _X = X[p]
             _y = y[p]
 
+            e = 0
+
             for i in range(nrows):
-                self.backprop(_X[i],_y[i], alpha)
+                e += self.backprop(_X[i],_y[i], alpha)
+
+            avg_error = np.sum(e/float(nrows))/float(len(e))
+
+            if k % 10 == 0:
+                print 'iteration:', k, ' out of ', max_iter
+                print 'average error:',avg_error
+            
 
     # computes a real-valued output
     def predict(self, X):

@@ -47,7 +47,7 @@ def main():
         print "Learned weights:",nnet
     else:
         act = 'sigmoid'
-        nhidden = 50
+        nhidden = 100
         ep = 200
         #ep=5
 
