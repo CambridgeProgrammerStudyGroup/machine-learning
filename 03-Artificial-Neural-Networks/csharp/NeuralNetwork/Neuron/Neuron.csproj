@@ -40,7 +40,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Output.cs" />
     <Compile Include="Synapse.cs" />
     <Compile Include="BiasInput.cs" />
     <Compile Include="ISynapse.cs" />

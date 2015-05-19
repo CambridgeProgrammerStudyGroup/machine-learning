@@ -10,49 +10,66 @@ namespace NeuralNetwork
         private static readonly IActivationFunction Activation = new SigmoidActivation();
         public static void Main()
         {
-            const int numInHiddenLayer = 5;
+            const int numInHiddenLayer = 500;
             const int numOfOutputs = 10;
-            
+
             var csvInputs = new InputFileReader().ReadInputFile();
+            var sensoryInputs = new List<SensoryInput>();
+            sensoryInputs = csvInputs[0].Item2.Select(i => new SensoryInput()).ToList();
 
-            //take first specimen to start with
-            var specimen = csvInputs[0];
-            var specimenInputs = specimen.Item2.ToList();
-            var sensoryInputs = new List<IInput>();
-            foreach (double input in specimenInputs)
+            // create the three layers
+            List<INeuron> inputLayer = CreateLayer(sensoryInputs.Count, sensoryInputs.Cast<IInput>().ToList());
+            List<INeuron> hiddenLayer = CreateLayer(numInHiddenLayer, inputLayer.Cast<IInput>().ToList());
+            List<INeuron> outputLayer = CreateLayer(numOfOutputs, hiddenLayer.Cast<IInput>().ToList());
+
+            Console.WriteLine("Training...");
+
+            //var specimen = csvInputs[0];
+            foreach (var specimen in csvInputs.Take(2))
             {
-                var sensoryInput = new SensoryInput();
-                sensoryInput.UpdateValue(input);
-                sensoryInputs.Add(sensoryInput);
+                var specimenInputs = specimen.Item2.ToList();
+                for (int i = 0; i < specimenInputs.Count; i++)
+                {
+                    sensoryInputs[i].UpdateValue(specimenInputs[i]);
+                }
+
+                inputLayer.ForEach(neuron => neuron.Update());
+                hiddenLayer.ForEach(neuron => neuron.Update());
+                outputLayer.ForEach(neuron => neuron.Update());
+
+                for (int k = 0; k < numOfOutputs; k++)
+                {
+                    double desired = k == specimen.Item1 ? 1.0d : 0.0d;
+                    double output = outputLayer[k].GetValue();
+                    double error = desired - output;
+                    outputLayer[k].Train(error);
+                }
+                for (int j = 0; j < numInHiddenLayer; j++)
+                {
+                    var thisNeuron = hiddenLayer[j];
+                    var errorContribution =
+                        outputLayer.Sum(outputNeuron => outputNeuron.Inputs[thisNeuron].Weight * outputNeuron.Error);
+                    thisNeuron.Train(errorContribution);
+                }
+                for (int i = 0; i < numInHiddenLayer; i++)
+                {
+                    var thisNeuron = inputLayer[i];
+                    var errorContribution =
+                        hiddenLayer.Sum(hiddenNeuron => hiddenNeuron.Inputs[thisNeuron].Weight * hiddenNeuron.Error);
+                    thisNeuron.Train(errorContribution);
+                }
             }
+            inputLayer.ForEach(neuron => neuron.Update());
+            hiddenLayer.ForEach(neuron => neuron.Update());
+            outputLayer.ForEach(neuron => neuron.Update());
 
-            List<IInput> inputLayer = CreateLayer(sensoryInputs.Count, sensoryInputs);
-            List<IInput> hiddenLayer = CreateLayer(numInHiddenLayer, inputLayer);
-            List<IInput> outputLayer = CreateLayer(numOfOutputs, hiddenLayer);
-
-            for (int i = 0; i < numOfOutputs; i++)
-            {
-                double desired = i == specimen.Item1 ? 1.0d : 0.0d;
-                double output = outputLayer[i].GetValue();
-                double error = desired - output;
-                ((INeuron)outputLayer[i]).Train(error);
-            }
-
-            outputLayer.ForEach(neuron=>Console.WriteLine(neuron.GetValue()));
+            outputLayer.ForEach(neuron => Console.WriteLine(neuron.GetValue()));
         }
 
-        private static IEnumerable<double> DesiredOutputsForSpecimen(int decimalAnswer)
-        {
-            for (int i = 0; i < 10; i++)
-            {
-                yield return i == decimalAnswer ? 1.0d : 0.0d;
-            }
-        } 
-
-        private static List<IInput> CreateLayer(int layerSize, List<IInput> inputs)
+        private static List<INeuron> CreateLayer(int layerSize, List<IInput> inputs)
         {
             var layerBias = new BiasInput(1.0d);
-            var layer = new List<IInput>();
+            var layer = new List<INeuron>();
             for (var i = 0; i < layerSize; i++)
             {
                 var neuron = new Neuron.Neuron(Activation);

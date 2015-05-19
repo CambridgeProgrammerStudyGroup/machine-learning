@@ -1,4 +1,6 @@
-﻿namespace Neuron
+﻿using System.Collections.Generic;
+
+namespace Neuron
 {
     public class SensoryInput : IInput
     {

@@ -22,7 +22,7 @@ namespace NeuralNetwork
 
                     var raw = line.Split(',');
                     var tuple = new Tuple<int, IEnumerable<double>>(int.Parse(raw[0]),
-                        raw.Skip(1).Select(s => double.Parse(s)/255.0d).Take(10));
+                        raw.Skip(1).Select(s => double.Parse(s)/255.0d));
                     csvInputs.Add(tuple);
                 }
             }

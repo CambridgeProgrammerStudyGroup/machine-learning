@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Neuron
+﻿namespace Neuron
 {
     public class Synapse : ISynapse
     {
@@ -12,11 +10,6 @@ namespace Neuron
         {
             Input = input;
             Weight = Util.GetRandomWeight();
-        }
-
-        public double GetValue()
-        {
-            return Input.GetValue() * Weight;
         }
 
         public void UpdateWeight(double error)

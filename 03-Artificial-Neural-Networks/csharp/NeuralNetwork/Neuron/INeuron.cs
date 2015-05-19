@@ -5,8 +5,9 @@ namespace Neuron
     public interface INeuron : IInput
     {
         double Error { get; }
-        List<ISynapse> Inputs { get; }
-        void Train(double error);
+        Dictionary<IInput, ISynapse> Inputs { get; }
+        void Train(double errorContribution);
         void RegisterInput(IInput input);
+        void Update();
     }
 }

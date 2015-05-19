@@ -1,6 +1,6 @@
 ﻿namespace Neuron
 {
-    public interface ISynapse : IInput
+    public interface ISynapse
     {
         IInput Input { get; }
         double Weight { get; }
