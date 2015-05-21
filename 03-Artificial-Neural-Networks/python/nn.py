@@ -5,7 +5,7 @@ import cost as cst
 # Neural network with backpropagation. Inspired by
 # http://www.bogotobogo.com/python/files/NeuralNetworks/nn3.py
 
-#np.random.seed(42)
+np.random.seed(42)
 
 def sigmoid(x):
     return 1.0/(1.0 + np.exp(-x))
@@ -83,6 +83,8 @@ class NeuralNetwork:
             for i in range(nrows):
                 e += self.backprop(_X[i],_y[i], alpha)
 
+            # this isn't really an average but it's useful 
+            # to track learning progress
             avg_error = np.sum(e/float(nrows))/float(len(e))
 
             if k % 10 == 0:

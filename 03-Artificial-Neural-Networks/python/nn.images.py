@@ -47,8 +47,10 @@ def main():
         print "Learned weights:",nnet
     else:
         act = 'sigmoid'
-        nhidden = 100
-        ep = 200
+        nhidden = int(sys.argv[1]) if len(sys.argv) > 1 else 50
+        print "Using ",nhidden," hidden units."
+        #nhidden = 50
+        ep = 50
         #ep=5
 
         start = time.time()
@@ -84,6 +86,7 @@ def main():
         preds_valid = nnet.predict_label(features_valid)
         ncorrect = np.sum(preds_valid == labels_valid)
         print "%f percent correct on validation set" % (100.0 * ncorrect / nvalid)
+        print "Using ",nhidden," hidden units."
         
         print "Predicting test data"
         Xtest = pd.read_csv('../testing.csv')
