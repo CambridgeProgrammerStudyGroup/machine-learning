@@ -19,7 +19,7 @@ namespace NeuralNetwork
             IList<Tuple<int, IEnumerable<double>>> csvInputs = inputFileReader.ReadTrainingInputFile(@"C:\Users\Pavlos\Desktop\training.csv", normalisation);
 
             int validationFraction = csvInputs.Count / 10; // use all but ten percent for training, hold the rest back for validation
-            var trainingInputs = csvInputs.ToList(); 
+            var trainingInputs = csvInputs.Skip(validationFraction).ToList(); 
             var validationInputs = csvInputs.Take(validationFraction).ToList();
             
             // create inputs and the three layers
@@ -57,8 +57,6 @@ namespace NeuralNetwork
                 {
                     UpdateNetwork(specimen.Item2.ToList(), sensoryInputs, inputLayer, hiddenLayer, outputLayer);
 
-                    //int mostLikelyAnswer = GetMostLikelyAnswer(outputLayer);
-                    //Console.WriteLine("It thinks '{0}' is a {1}", specimen.Item1, mostLikelyAnswer);
                     for (int i = 0; i < outputLayer.Count; i++)
                     {
                         double desired = i == specimen.Item1 ? 1.0d : 0.0d;
