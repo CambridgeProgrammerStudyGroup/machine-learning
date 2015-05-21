@@ -35,7 +35,7 @@ namespace Neuron
             if (_cachedOutput.HasValue)
                 return _cachedOutput.Value;
 
-            throw new Exception("something went wrong...");
+            throw new Exception("You're doing it wrong! Call Update() first.");
         }
 
         public void Train(double errorContribution)

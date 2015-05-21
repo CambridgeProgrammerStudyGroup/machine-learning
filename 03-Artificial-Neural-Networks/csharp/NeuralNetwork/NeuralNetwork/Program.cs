@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Neuron;
 
 namespace NeuralNetwork
@@ -12,58 +13,104 @@ namespace NeuralNetwork
         {
             const int numInHiddenLayer = 500;
             const int numOfOutputs = 10;
+            const double normalisation = 255.0d;
 
-            var csvInputs = new InputFileReader().ReadInputFile();
-            var sensoryInputs = new List<SensoryInput>();
-            sensoryInputs = csvInputs[0].Item2.Select(i => new SensoryInput()).ToList();
+            var inputFileReader = new InputFileReader();
+            IList<Tuple<int, IEnumerable<double>>> csvInputs = inputFileReader.ReadTrainingInputFile(@"C:\Users\Pavlos\Desktop\training.csv", normalisation);
 
-            // create the three layers
+            int validationFraction = csvInputs.Count / 10; // use all but ten percent for training, hold the rest back for validation
+            var trainingInputs = csvInputs.ToList(); 
+            var validationInputs = csvInputs.Take(validationFraction).ToList();
+            
+            // create inputs and the three layers
+            List<SensoryInput> sensoryInputs = trainingInputs[0].Item2.Select(i => new SensoryInput()).ToList();
             List<INeuron> inputLayer = CreateLayer(sensoryInputs.Count, sensoryInputs.Cast<IInput>().ToList());
             List<INeuron> hiddenLayer = CreateLayer(numInHiddenLayer, inputLayer.Cast<IInput>().ToList());
             List<INeuron> outputLayer = CreateLayer(numOfOutputs, hiddenLayer.Cast<IInput>().ToList());
 
-            Console.WriteLine("Training...");
+            double previousGlobalError = double.MaxValue;
+            double globalErrorDelta;
 
-            //var specimen = csvInputs[0];
-            foreach (var specimen in csvInputs.Take(2))
+            // training:
+            do
             {
-                var specimenInputs = specimen.Item2.ToList();
-                for (int i = 0; i < specimenInputs.Count; i++)
+                foreach (var specimen in trainingInputs)
                 {
-                    sensoryInputs[i].UpdateValue(specimenInputs[i]);
+                    UpdateNetwork(specimen.Item2.ToList(), sensoryInputs, inputLayer, hiddenLayer, outputLayer);
+
+                    // train output layer
+                    for (int k = 0; k < outputLayer.Count; k++)
+                    {
+                        double desired = k == specimen.Item1 ? 1.0d : 0.0d;
+                        double output = outputLayer[k].GetValue();
+                        double error = desired - output;
+                        outputLayer[k].Train(error);
+                    }
+                    // train hidden layer, then train input layer
+                    BackPropagate(hiddenLayer, outputLayer);
+                    BackPropagate(inputLayer, hiddenLayer);
                 }
 
-                inputLayer.ForEach(neuron => neuron.Update());
-                hiddenLayer.ForEach(neuron => neuron.Update());
-                outputLayer.ForEach(neuron => neuron.Update());
+                // calculate global error using the validation set that was excluded from training:
+                double globalError = 0.0d;
+                foreach (var specimen in validationInputs)
+                {
+                    UpdateNetwork(specimen.Item2.ToList(), sensoryInputs, inputLayer, hiddenLayer, outputLayer);
 
-                for (int k = 0; k < numOfOutputs; k++)
-                {
-                    double desired = k == specimen.Item1 ? 1.0d : 0.0d;
-                    double output = outputLayer[k].GetValue();
-                    double error = desired - output;
-                    outputLayer[k].Train(error);
+                    //int mostLikelyAnswer = GetMostLikelyAnswer(outputLayer);
+                    //Console.WriteLine("It thinks '{0}' is a {1}", specimen.Item1, mostLikelyAnswer);
+                    for (int i = 0; i < outputLayer.Count; i++)
+                    {
+                        double desired = i == specimen.Item1 ? 1.0d : 0.0d;
+                        globalError += Math.Abs(desired - outputLayer[i].GetValue());
+                    }
                 }
-                for (int j = 0; j < numInHiddenLayer; j++)
-                {
-                    var thisNeuron = hiddenLayer[j];
-                    var errorContribution =
-                        outputLayer.Sum(outputNeuron => outputNeuron.Inputs[thisNeuron].Weight * outputNeuron.Error);
-                    thisNeuron.Train(errorContribution);
-                }
-                for (int i = 0; i < numInHiddenLayer; i++)
-                {
-                    var thisNeuron = inputLayer[i];
-                    var errorContribution =
-                        hiddenLayer.Sum(hiddenNeuron => hiddenNeuron.Inputs[thisNeuron].Weight * hiddenNeuron.Error);
-                    thisNeuron.Train(errorContribution);
-                }
+
+                globalErrorDelta = Math.Abs(previousGlobalError - globalError);
+                previousGlobalError = globalError;
+                Console.WriteLine("Global error: {0}", globalError);
+
+            } while (globalErrorDelta > 1000.0d); // train until global error begins to level off
+
+            // Run on real testing data and write output to console:
+            var testingInputs = inputFileReader.ReadTestingInputFile(@"C:\Users\Pavlos\Desktop\testing.csv", normalisation);
+            foreach (var specimen in testingInputs)
+            {
+                UpdateNetwork(specimen.ToList(), sensoryInputs, inputLayer, hiddenLayer, outputLayer);
+                int mostLikelyAnswer = GetMostLikelyAnswer(outputLayer);
+
+                Console.WriteLine(mostLikelyAnswer);
             }
-            inputLayer.ForEach(neuron => neuron.Update());
-            hiddenLayer.ForEach(neuron => neuron.Update());
-            outputLayer.ForEach(neuron => neuron.Update());
+        }
 
-            outputLayer.ForEach(neuron => Console.WriteLine(neuron.GetValue()));
+        private static void UpdateNetwork(IList<double> specimenInputs, List<SensoryInput> sensoryInputs, 
+            List<INeuron> inputLayer, List<INeuron> hiddenLayer, List<INeuron> outputLayer)
+        {
+            for (int i = 0; i < specimenInputs.Count; i++)
+                sensoryInputs[i].UpdateValue(specimenInputs[i]);
+
+            UpdateLayer(inputLayer);
+            UpdateLayer(hiddenLayer);
+            UpdateLayer(outputLayer);
+        }
+
+        private static void UpdateLayer(IEnumerable<INeuron> layer)
+        {
+            // Output can be computed in parallel as neurons in a layer are independent of each other
+            Parallel.ForEach(layer, neuron => neuron.Update());
+        }
+
+        private static void BackPropagate(IEnumerable<INeuron> leftLayer, List<INeuron> rightLayer)
+        {
+            // backpropagation can also be done in parallel for a particular layer
+            Parallel.ForEach(leftLayer, leftNeuron =>
+            {
+                // the compute the error contribution of this neuron, by looking at the 
+                // error of the neurons it is connected to on the right
+                var errorContribution =
+                    rightLayer.Sum(rightNeuron => rightNeuron.Inputs[leftNeuron].Weight*rightNeuron.Error);
+                leftNeuron.Train(errorContribution);
+            });
         }
 
         private static List<INeuron> CreateLayer(int layerSize, List<IInput> inputs)
@@ -78,6 +125,22 @@ namespace NeuralNetwork
                 layer.Add(neuron);
             }
             return layer;
+        }
+
+        private static int GetMostLikelyAnswer(IList<INeuron> outputLayer)
+        {
+            double max = 0.0d;
+            int answer = 0;
+            for (int i = 0; i < outputLayer.Count; i++)
+            {
+                double value = outputLayer[i].GetValue();
+                if (value > max)
+                {
+                    max = value;
+                    answer = i;
+                }
+            }
+            return answer;
         }
     }
 }
