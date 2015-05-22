@@ -4,3 +4,10 @@ iteration: 190  out of  200
 Time elapsed  5203.93832898
 89.495238% percent correct on training set
 
+100 hidden neurons
+iteration: 190  out of  200
+Time elapsed  5887.4366219
+90.357143 percent correct on validation set
+Predicting test data
+
+
