@@ -24,8 +24,9 @@ def spy(fn):
 def choose_k(data):
 	return 3
 
+@spy
 def pick_centroids(k, data):
-	return data[:k]
+	return [random.choice(data) for i in range(k)]
 
 def distance(a,b):
 	return math.sqrt(sum([(a-b)*(a-b) for a,b in zip(a,b)]))
