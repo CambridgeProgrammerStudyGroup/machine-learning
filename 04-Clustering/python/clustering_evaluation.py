@@ -1,5 +1,6 @@
 from sklearn.datasets import load_iris
 from sklearn.cluster import KMeans
+import numpy as np
 
 iris = load_iris()
 X = iris.data
@@ -10,7 +11,15 @@ clf = KMeans(n_clusters=3)
 clf.fit(X)
 labels = clf.labels_
 
-labels = clf.predict(X)
+intersection = np.ndarray((3,3))
+for i in [0,1,2]:
+    for j in [0,1,2]:
+        where_y = list(np.where(Y==i)[0])
+        where_l = list(np.where(labels==j)[0])
+        intersection[i, j] = len(set(where_y) & set(where_l))
+mapping_predict_true = dict(zip(np.argmax(intersection,1),[0,1,2]))
 
-for label,target in zip(labels,Y):
-    print label,target
+labels = map(lambda x: mapping_predict_true[x], labels)
+
+print 'Accuracy: '
+print sum(labels==Y)/float(len(Y))
