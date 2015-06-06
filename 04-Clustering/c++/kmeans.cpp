@@ -12,8 +12,7 @@
 using namespace std;
 
 // number of clusters
-size_t K=4;
-
+size_t K=5;
 
 struct Point {
     Point(double x1,double x2, double x3, double x4) 
@@ -63,8 +62,9 @@ fwditer random_unique(fwditer begin, fwditer end, size_t num_random) {
     return begin;
 }
 
+
 bool getCentroid(const DataVec& data, const int cluster, Point& centroid) {
-    size_t num(1);
+    size_t num(0);
     Point new_centroid(0.0,0.0,0.0,0.0);
     for (DataVec::const_iterator ct=data.begin();ct!=data.end();++ct) {
         if (ct->cluster_ == cluster) {
@@ -76,6 +76,13 @@ bool getCentroid(const DataVec& data, const int cluster, Point& centroid) {
             ++num;
         }
     }
+
+    if (num==0) {
+        std::cout << "Cluster unchanged \n";
+        return true;
+    }
+
+
     new_centroid.x1_ /= num;
     new_centroid.x2_ /= num;
     new_centroid.x3_ /= num;
@@ -83,6 +90,7 @@ bool getCentroid(const DataVec& data, const int cluster, Point& centroid) {
 
     double d = dist(centroid,new_centroid);
     std::cout << "getCentroid: d=" << d << "\n";
+    std::cout << "num=" << num << "\n";
     bool changed = d>0.05 ? true : false;
     centroid = new_centroid;
     return changed;
@@ -118,25 +126,62 @@ bool fit(DataVec& data, DataVec& centroids) {
     return converged;
 }
 
+double dunnIndex(DataVec& data, DataVec& centroids) {
+    double res = 0.0;
+
+    // compute max cluster diameter
+    double max_clust_diam = 0.0;
+    for (size_t i=0;i<K;++i) {
+        double clust_diam = 0.0;
+        double n = 0.0;
+        for (DataVec::const_iterator ct=data.begin();ct!=data.end();++ct) {
+            if (ct->cluster_ == i) {
+                double d = dist(*ct,centroids[K]);
+                clust_diam += d;
+                ++n;
+            }
+        }
+        std::cout << "clust_diam = " << clust_diam << "\n";
+        if (n>0) clust_diam /= n;
+        std::cout << "clust_diam = " << clust_diam << "\n";
+        if (clust_diam > max_clust_diam) max_clust_diam = clust_diam;
+    }
+
+    // compute min intercluster distance
+    double min_clust_dist = std::numeric_limits<double>::max();
+    for (size_t i=0;i<K;++i) {
+        double d = 0.0;
+        for (size_t j=(i+1);j<K;++j) {
+            d = dist(centroids[i],centroids[j]);
+            //std::cout << "distance btw " << i << " " << j << " d= " << d << "\n";
+        }
+        if (d>0 && d<min_clust_dist) min_clust_dist = d;
+    }
+    std::cout << "min_clust_dist = " << min_clust_dist << "\n";
+    std::cout << "max_clust_diam = " << max_clust_diam << "\n";
+    if (max_clust_diam > 0) res = min_clust_dist / max_clust_diam;
+    return res;
+}
 
 int main(int argc, char** argv) {
     
     // seed random generator
-    //srand(time(NULL));
+    srand(time(NULL));
 
     ifstream infile("../iris.data");
     string line;
     DataVec data;
+    double fac = 4.0;
     while (std::getline(infile, line))
     {
         std::vector<std::string> fields;
         boost::split(fields,line, boost::is_any_of(","));
         assert(fields.size() == 5);
 
-        double x1 = atof(fields[0].c_str());
-        double x2 = atof(fields[1].c_str());
-        double x3 = atof(fields[2].c_str());
-        double x4 = atof(fields[3].c_str());
+        double x1 = atof(fields[0].c_str())*fac;
+        double x2 = atof(fields[1].c_str())*fac;
+        double x3 = atof(fields[2].c_str())*fac;
+        double x4 = atof(fields[3].c_str())*fac;
 
         Point p(x1,x2,x3,x4);
         //std::cout << p << std::endl;
@@ -163,6 +208,10 @@ int main(int argc, char** argv) {
         std::cout << done << "\n";
     }
 
+    double idx = dunnIndex(data,centroids);
+    cout << "Dunn Index for this clustering " << idx << "\n";
+
+    // write clustering to file
     ofstream of("clusters.dat");
     for (DataVec::iterator it = data.begin(); it!=data.end(); ++it) {
         of << *it << std::endl;
