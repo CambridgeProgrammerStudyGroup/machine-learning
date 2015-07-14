@@ -4,6 +4,7 @@ andrew.wood9@ntlworld.com
 
 1. an implementation of k-means clustering in haskell
 2. an implementation of hierarchical k-menas clustering in clojure
+3. an implementation of DBSCAN clustering in clojure
 
 ---------------------
 1. k-means clustering
@@ -50,8 +51,8 @@ It prints out the results.
 
 The results are anomalous.
 
-> (hc/fisher-cluster) 
-> (hc/ajw-cluster)
+> (hc/fisher-pca) 
+> (hc/hi-pca)
 
 print out 2D principal component incanter charts to check what is goin on.
 
@@ -62,4 +63,35 @@ The incanter code is based on:
 The relevant code is in the namespace hierarchical.
 The (imperfect) clustering is decided in 'closest-vectors'.
  
+--------------------
+3. DBSCAN clustering
+--------------------
+
+This is developed from the code on git: NeoTeo/DBScan
+ amended to deal with vectors rather than single values 
+
+From core:
+
+(show-distances) and
+(show-regions distance)
+
+generate incanter histograms indicating the distances between points and the
+number of points assocaited with each point given a specified distance.
+
+Choosing eps and minPts On the basis of this information:
+
+(iris-db-cluster eps minpts) generates an incanter pricipal components 2D scatter plot of 
+  the resulting clustering.
+
+(iris-db-cluster) defaults to (iris-db-cluster 0.5 15) 
+ 
+
+  (db/show-distances))
+
+; histogram
+
+(defn show-regions [dist]
+  (db/show-regions dist))
+
+
 
