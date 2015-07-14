@@ -1,5 +1,4 @@
 (ns clj-ml7.hierarchical
-  (:use [clojure.math.numeric-tower :only [sqrt]])
   
   (:require [incanter.core :as ic] 
         [incanter.datasets :as id]
@@ -8,53 +7,17 @@
                 [clj-ml.data :as cd]
                 [clojure.math.numeric-tower :as math]
                 [clojure.java.io :as io]
-                [clojure.data.csv :as csv])
+                [clojure.data.csv :as csv]
+                
+           [clj-ml7.utils :as ut]     
+                )
   
   
   )
 
-; -------------
-; original code
-; -------------
-
-
-(defn sum-of-squares [coll]
-  (reduce + (map * coll coll)))
-
-(defprotocol Each
-  (each [v op w]))
-
-(defprotocol Distance
-  (distance [v w]))
-
-(defn closest-vectors [vs]
-  (let [index-range (range (count vs))]
-    (apply min-key
-           (fn [[x y]] (distance (vs x) (vs y)))
-           (for [i index-range
-                 j (filter #(not= i %) index-range)]
-             [i j]))))
-
-(defn centroid [& xs]
-  (each
-   (reduce #(each %1 + %2) xs)
-   *
-   (double (/ 1 (count xs)))))
-
-(extend-type clojure.lang.PersistentVector
-  Each
-  (each [v op w]
-    (vec
-     (cond
-      (number? w) (map op v (repeat w))
-      (vector? w) (if (>= (count v) (count w))
-                    (map op v (lazy-cat w (repeat 0)))
-                    (map op (lazy-cat v (repeat 0)) w)))))
-  Distance
-  ;; implemented as Euclidean distance
-  (distance [v w] (-> (each v - w)
-                      sum-of-squares
-                      sqrt)))
+; ===
+; AJW
+; ===
 
 (defn h-cluster
   "Performs hierarchical clustering on a
@@ -64,7 +27,7 @@
     (if (< (count nodes) 2)
       nodes
       (let [vectors    (vec (map :vec nodes))
-            [l r]      (closest-vectors vectors)
+            [l r]      (ut/closest-vectors vectors)
             node-range (range (count nodes))
             new-nodes  (vec
                         (for [i node-range
@@ -73,7 +36,7 @@
                           (nodes i)))]
         (recur (conj new-nodes
                      {:left (nodes l) :right (nodes r)
-                      :vec (centroid
+                      :vec (ut/centroid
                             (:vec (nodes l))
                             (:vec (nodes r)))}))))))
 
@@ -254,7 +217,7 @@
     (if (= (count nodes) n)
           nodes
       (let [vectors    (vec (map :vec nodes))
-            [l r]      (closest-vectors vectors)
+            [l r]      (ut/closest-vectors vectors)
             node-range (range (count nodes))
             new-nodes  (vec
                         (for [i node-range
@@ -263,7 +226,7 @@
                           (nodes i)))]
         (recur (conj new-nodes
                      {:left (nodes l) :right (nodes r)
-                      :vec (centroid
+                      :vec (ut/centroid
                             (:vec (nodes l))
                             (:vec (nodes r)))}))))))
 
@@ -283,7 +246,7 @@
     (if (< (count nodes) 2)
           nodes
       (let [vectors    (vec (map :vec nodes))
-            [l r]      (closest-vectors vectors)
+            [l r]      (ut/closest-vectors vectors)
             node-range (range (count nodes))
             new-nodes  (vec
                         (for [i node-range
@@ -292,7 +255,7 @@
                           (nodes i)))]
         (recur (conj new-nodes
                      {:left (nodes l) :right (nodes r)
-                      :vec (centroid
+                      :vec (ut/centroid
                             (:vec (nodes l))
                             (:vec (nodes r))) :joins joins}) (dec joins))))))
 
@@ -398,19 +361,24 @@
 
 (defn make-data-set [i]
   
-   (let [fn1 (fn [n] (let [vecs (leaves (nth i n))]
+   (let [cnt (count i)
+         fn1 (fn [n] (let [vecs (leaves (nth i n))]
                       (map (fn [x] (vec (concat x [n]))) vecs)))]
-     (vec (concat (fn1 0) (fn1 1) (fn1 2)))))
+     (loop [n 0 lis []]
+       (if (= n cnt) lis
+          (recur (inc n) (vec (concat (fn1 n) lis)))))))  
+     
+     
+     ;(vec (concat (fn1 0) (fn1 1) (fn1 2)))))
 
-(defn pca-2 []
-    (let [iris-matrix (ic/to-matrix (ic/to-dataset (make-data-set iris-n-join)))
+(defn iris-pca [ds]
+     
+    (let [iris-matrix (ic/to-matrix (ic/to-dataset ds))
           iris-features (ic/sel iris-matrix :cols (range 4))
           iris-species (ic/sel iris-matrix :cols 4)
-    
           pca (st/principal-components iris-features)
           U (:rotation pca)
           U-reduced (ic/sel U :cols (range 2))
-
           reduced-features (ic/mmult iris-features U-reduced)]
 
      (ic/view (ch/scatter-plot (ic/sel reduced-features :cols 0)
@@ -419,7 +387,12 @@
                          :x-label "PC1"
                          :y-label "PC2"))))
 
+(defn hi-pca [] (iris-pca (make-data-set iris-n-join)))
+
+(defn fisher-pca [] (iris-pca (id/get-dataset :iris)))
+         
 ;; =========
 ;; namespace
 ;; =========
+
 (defn core [] (ns clj-ml7.core))

@@ -22,3 +22,19 @@
   (defn demo []
      (plot-reduced-features)
   )
+  
+  (defn fisher-pca []
+    
+      (let [iris-matrix (to-matrix (get-dataset :iris))
+            iris-features (sel iris-matrix :cols (range 4))
+            iris-species (sel iris-matrix :cols 4)
+            pca (principal-components iris-features)
+            U (:rotation pca)
+            U-reduced (sel U :cols (range 2))
+            reduced-features (mmult iris-features U-reduced)]
+    
+     (view (scatter-plot (sel reduced-features :cols 0)
+                      (sel reduced-features :cols 1)
+                      :group-by iris-species
+                      :x-label "PC1"
+                      :y-label "PC2"))))
