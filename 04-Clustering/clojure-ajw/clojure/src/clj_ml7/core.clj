@@ -5,24 +5,55 @@
             [clj-ml7.som :as som]
             [clj-ml7.pca :as pca]
             [clj-ml7.incanter :as inc]
-            
-            
-            )
+            [clj-ml7.dbscan :as db])
   
   (:require [incanter.core :as ic] 
-        [incanter.datasets :as id]
-        [clj-ml.data :as cd]
-        [clj-ml.clusterers :as cc])
-  
-  )
+            [incanter.datasets :as id]
+            [clj-ml.data :as cd]
+            [clj-ml.clusterers :as cc])
+)
 
 
 ;; ===
 ;; AJW
 ;; ===
 
+;; ---------------
+;; 1. hierarchical
+;; ---------------
+
 (defn iris-hi-cluster [n]
   (hc/iris-cluster-join n))
+
+; results
+
+(defn fisher-pca []
+  (hc/fisher-pca))
+
+(defn hi-pca []
+  (hc/hi-pca))
+
+
+;; ---------
+;; 2. dbscan
+;; ---------
+
+; histogram of distances between points
+
+(defn show-distances []
+  (db/show-distances))
+
+; histogram
+
+(defn show-regions [dist]
+  (db/show-regions dist))
+
+; demo
+
+(defn iris-db-cluster 
+  ([] (iris-db-cluster 0.5 15))
+  ([eps min-pts]  (db/iris-pca (db/prepare-pca (db/dbscan-iris eps min-pts)))))
+
 
 ;; ==========
 ;; AKHIL WALI
@@ -190,4 +221,6 @@
 (defn km [] (ns clj-ml7.kmeans))
 (defn hi [] (ns clj-ml7.hierarchical))
 (defn incanter [] (ns clj-ml7.incanter))
+(defn pca [] (ns clj-ml7.pca))
+(defn db [] (ns clj-ml7.dbscan))
 
