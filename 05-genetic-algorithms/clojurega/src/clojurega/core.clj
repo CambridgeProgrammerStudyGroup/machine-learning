@@ -13,45 +13,44 @@
 (defn gen-one []
   (apply str (repeatedly (rand-range 10 30) #(rand-nth alphabet))))
 
-(defn gen-pop [] (repeatedly 100 #(gen-one)))
+(gen-one)
+
+(defn gen-pop [n] (repeatedly n #(gen-one)))
 
 (def target-string "Welcome To Genetic Algorithms!")
 
+;(defn fitness [candidate]
+;  (utils/damerau–levenshtein candidate target-string))
+
 (defn fitness [candidate]
-  (utils/damerau–levenshtein candidate target-string))
+  (-
+    (apply + (map (fn [a b] (if (= a b) 1 0)) candidate target-string))
+    (Math/abs (- (count candidate) (count target-string)))))
+
 
 (defn select [population]
-  "Very naive selection - there are much better examples.
-  Take a look at https://en.wikipedia.org/wiki/Crossover_(genetic_algorithm)"
   (let [fitness-ranked (sort-by fitness population)
         discard (int (* 0.5 (count fitness-ranked)))
-        best (take discard fitness-ranked)]
+        best (drop discard fitness-ranked)]
     best))
 
 (defn breed [a b]
-  "Cut and splice crossover"
-  (let [from-a (take (rand-int (count a)) a)
-        from-b (drop (rand-int (count b)) b)]
-    (str from-a from-b)))
+    (apply str (map (fn [a b] (rand-nth [a b])) a b)))
 
 
 (defn crossover [population]
-  (let [parents population
-        reducer (fn [children parent]
+  (let [pairs (map vector population (shuffle population))
+        reducer (fn [children pair]
                   (conj children
-                        (breed parent (rand-nth parents))
-                        (breed parent (rand-nth parents))))]
+                        (breed (first pair) (second pair))))]
 
-    (reduce reducer population population)))
+    (reduce reducer [] pairs )))
 
 
-(defn mutate-swap [i where]
-  (apply str
-         (concat
-            (take (dec where) i)
-            [(nth i (inc where))]
-            [(nth i where)]
-            (drop (inc where) i))))
+(defn clamp [i a b]
+  (cond (< b i) b
+        (> a i) a
+        :else i))
 
 (defn mutate-delete [i where]
   (apply str (concat (take (dec where) i) (drop where i))))
@@ -60,40 +59,55 @@
   (apply str (concat (take where i) [(rand-nth alphabet)] (drop where i))))
 
 (defn mutate-change [i where]
-  (apply str (concat (take (dec where) i) [(rand-nth alphabet)] (drop where i))))
+  (apply str (concat (list (take (dec where) i)) [(rand-nth alphabet)] (list (drop where i)))))
+
+(defn mutate-shift [i where]
+  (apply str (concat
+              (take (dec where) i)
+              [(char ((rand-nth [inc dec]) (int (nth i where))))]
+              (drop where i))))
+
+(defn dont-mutate [i where] i)
 
 (defn mutate [individual]
-  "Very naive mutation"
-  (let [spot (dec (rand-int (count individual)))
-        f (rand-nth [mutate-swap mutate-add mutate-change mutate-delete])]
-    (f individual spot)))
+  (let [spot  (rand-int (dec (count individual)))
+        f     (rand-nth [mutate-delete mutate-add mutate-change mutate-shift])
+        new   (f individual spot)]
+    new))
 
 
 
-; (map #(%1 "abcdefghijkl" 3) [mutate-swap mutate-add mutate-change mutate-delete])
+(map #(%1 (gen-one) 3) [ mutate-add mutate-change mutate-delete])
 
 
-(defn mutate-pop [population]
-  (let [rate 0.1]
-    (map (fn [individual]
-           (if (< (rand) rate)
-             (mutate individual)
-             individual))
-         population)))
+(defn mutate-population [population]
+  (let [rate 1.0
+        newpop (map (fn [individual]
+                       (if (< (rand) rate)
+                         (mutate individual)
+                         individual))
+                     population)]
+    newpop))
 
 
-(defn run-generations [ngens initial-population mutate crossover select]
+(defn run-generations [ngens initial-population mutate-pop crossover select]
   (loop [population initial-population
          generation 0]
     (if (< generation ngens)
       (do
-        (let [popul (sort-by fitness population)]
-        (println "Generation:" generation "best fitness (less is best):" (fitness (first popul)) "[" (first popul) "]" )
+        (let [sorted-popul (sort-by fitness population)
+              best (last sorted-popul)
+              best-fitness (fitness best)]
+        (println "Generation:" generation "best fitness:" best-fitness "[" best "]" )
+
         (recur
-         (mutate (crossover (select population)))
+         (let [selected (select population)
+               children (mutate-pop (crossover selected))]
+               (concat selected children))
          (inc generation))))
       population)))
 
 
 (defn -main [& args]
-  (pprint (run-generations 100 (gen-pop) mutate-pop crossover select)))
+  (let [starting (gen-pop 1000)
+        population (run-generations 500 starting mutate-population crossover select)]))
