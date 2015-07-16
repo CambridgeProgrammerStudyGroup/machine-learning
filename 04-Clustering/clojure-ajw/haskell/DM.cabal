@@ -1,0 +1,23 @@
+name: TimeTravel
+version: 0.0.1
+cabal-version: >=1.2
+build-type: Simple
+license: AllRightsReserved
+license-file: ""
+description:
+data-dir: ""
+
+executable 14_time
+    build-depends: QuickCheck -any, base -any, containers -any, deepseq -any, data-default -any, split -any
+    main-is: Main.hs
+    buildable: True
+    hs-source-dirs: src
+
+test-suite test-14_time
+    build-depends: QuickCheck -any, base -any, containers -any, deepseq -any, data-default -any, split -any
+    type: exitcode-stdio-1.0
+    main-is: Main.hs
+    buildable: True
+    cpp-options: -DMAIN_FUNCTION=testMain
+    hs-source-dirs: src
+
