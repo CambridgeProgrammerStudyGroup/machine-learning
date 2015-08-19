@@ -49,7 +49,7 @@ class Leaf(object):
         self.value = _choose_terminal()
 
     def __call__(self, x_val):
-        return self.value if self.value is not "x" else x_val
+        return float(self.value) if self.value is not "x" else x_val
 
     def __repr__(self):
         return str(self.value)
