@@ -25,7 +25,7 @@ namespace GeneticAlgorithms
 
         public void GetNextGeneration()
         {
-            Genomes = Rank().ToList();
+			Genomes = Rank().ToList();
             var random = new Random(DateTime.Now.Millisecond);
             for (int i = (_size/2)+1; i < _size; i++)
             {
@@ -34,11 +34,23 @@ namespace GeneticAlgorithms
                 Genomes[i] = FitnessEvaluator.CrossoverGenomes(Genomes[random1], Genomes[random2]);
                 Genomes[i] = FitnessEvaluator.MutateGenome(Genomes[i], _mutationRate);
             }
+
+
         }
 
         public IOrderedEnumerable<Genome> Rank()
         {
-            return Genomes.OrderByDescending(g => FitnessEvaluator.GetFitness(g, _target));
+			// get fitness and normalise
+			foreach (Genome genome in Genomes) {
+				genome.Fitness = FitnessEvaluator.GetFitness (genome, _target);
+			}
+			var totalFitness = Genomes.Sum(g => g.Fitness);
+			foreach (Genome genome in Genomes) {
+				genome.NormalisedFitness = genome.Fitness / totalFitness;
+			}
+
+			// order the genomes by fitness
+			return Genomes.OrderByDescending(g => g.Fitness);
         }
 
         private IEnumerable<Genome> InitialisePopulation()

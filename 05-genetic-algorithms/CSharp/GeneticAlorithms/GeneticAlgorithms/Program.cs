@@ -12,8 +12,10 @@ namespace GeneticAlgorithms
     {
         static void Main(string[] args)
         {
-            var target = "to be or not to be that is the question";
-            var population = new Population(100, 0.1, target);
+			var target = "to be or not to be that is the question whether tis nobler in " +
+			             "the mind to suffer the strings and arrows of outrageous fortune or to " +
+						 "take up arms against a sea of troubles and by opposing end them";
+            var population = new Population(100, 0.05, target);
 
             var stopwatch = new Stopwatch();
             stopwatch.Start();
@@ -23,8 +25,8 @@ namespace GeneticAlgorithms
             do
             {
                 population.GetNextGeneration();
-                first = population.Rank().First();
-                Console.WriteLine("Generation {0}: {1}", index++, JoinPhrase(first.Phrase));
+				first = population.Genomes.First();
+				Console.WriteLine("Generation {0}, fitness = {1}: {2}", index++, first.Fitness, JoinPhrase(first.Phrase));
             } while (JoinPhrase(first.Phrase) != target);
 
             stopwatch.Stop();
