@@ -10,18 +10,14 @@ namespace GeneticAlgorithms
 
         public static int GetFitness(Genome genome, string answer)
         {
-            return answer.Where((currentChar, i) => currentChar == genome[i]).Count();
-        }
-
-        public static IEnumerable<double> NormaliseFitnessValues(IList<int> fitnessValues)
-        {
-            var totalFitness = fitnessValues.Sum();
-            return fitnessValues.Select(i => (double) i/totalFitness);
+            var fitness = answer.Where((currentChar, i) => currentChar == genome[i]).Count();
+			genome.Fitness = fitness;
+			return fitness;
         }
 
         public static Genome CrossoverGenomes(Genome genome1, Genome genome2)
         {
-            return new Genome(genome1.Phrase.Zip(genome2.Phrase, (g1, g2) => Random.Next(0,1) == 0 ? g1 : g2).ToArray());
+            return new Genome(genome1.Phrase.Zip(genome2.Phrase, (g1, g2) => Random.Next(0,2) == 0 ? g1 : g2).ToArray());
         }
 
         public static Genome MutateGenome(Genome genome, double mutationRate)
