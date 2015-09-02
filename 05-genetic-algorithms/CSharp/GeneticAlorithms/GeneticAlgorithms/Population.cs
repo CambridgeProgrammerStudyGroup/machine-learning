@@ -13,6 +13,7 @@ namespace GeneticAlgorithms
         private readonly int _lengthOfAnswer;
         private static string _target;
         public IList<Genome> Genomes { get; set; }
+		public IList<Genome> MatingPool { get; set; }
 
         public Population(int size, double mutationRate, string target)
         {
@@ -27,26 +28,28 @@ namespace GeneticAlgorithms
         {
 			Genomes = Rank().ToList();
             var random = new Random(DateTime.Now.Millisecond);
-            for (int i = (_size/2)+1; i < _size; i++)
+            for (int i = (_size/5)+1; i < _size; i++)
             {
-                int random1 = random.Next(_size/2);
-                int random2 = random.Next(_size/2);
-                Genomes[i] = FitnessEvaluator.CrossoverGenomes(Genomes[random1], Genomes[random2]);
+				int random1 = random.Next(MatingPool.Count);
+				int random2 = random.Next(MatingPool.Count);
+				Genomes[i] = FitnessEvaluator.CrossoverGenomes(MatingPool[random1], MatingPool[random2]);
                 Genomes[i] = FitnessEvaluator.MutateGenome(Genomes[i], _mutationRate);
             }
-
-
         }
 
         public IOrderedEnumerable<Genome> Rank()
         {
 			// get fitness and normalise
+			MatingPool = new List<Genome>();
 			foreach (Genome genome in Genomes) {
 				genome.Fitness = FitnessEvaluator.GetFitness (genome, _target);
 			}
 			var totalFitness = Genomes.Sum(g => g.Fitness);
 			foreach (Genome genome in Genomes) {
-				genome.NormalisedFitness = genome.Fitness / totalFitness;
+				genome.NormalisedFitness = (genome.Fitness / totalFitness) * 100;
+				for (int i = 0; i < genome.NormalisedFitness + 1; i++) {
+					MatingPool.Add (genome);
+				}
 			}
 
 			// order the genomes by fitness

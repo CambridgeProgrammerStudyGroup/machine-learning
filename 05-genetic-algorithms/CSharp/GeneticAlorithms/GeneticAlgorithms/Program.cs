@@ -15,7 +15,7 @@ namespace GeneticAlgorithms
 			var target = "to be or not to be that is the question whether tis nobler in " +
 			             "the mind to suffer the strings and arrows of outrageous fortune or to " +
 						 "take up arms against a sea of troubles and by opposing end them";
-            var population = new Population(100, 0.05, target);
+            var population = new Population(1000, 0.01, target);
 
             var stopwatch = new Stopwatch();
             stopwatch.Start();
