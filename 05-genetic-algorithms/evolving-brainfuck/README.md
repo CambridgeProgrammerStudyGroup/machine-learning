@@ -12,4 +12,9 @@ Specifications for the Brainplus language
 `[`   Jump forward past the matching ] if the byte at the pointer is zero.
 `]`   Jump backward to the matching [ unless the byte at the pointer is zero.
 
-## Brainplus
+## Resources
+* http://www.primaryobjects.com/CMS/Article149
+* http://www.primaryobjects.com/CMS/Article150
+* http://www.primaryobjects.com/CMS/Article163
+* http://esolangs.org/wiki/Extended_Brainfuck#Extended_Type_III
+* http://www.genetic-programming.com/johnkoza.html
