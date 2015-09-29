@@ -1,3 +1,3 @@
 #!/bin/bash
-clang  src/main.c src/brainfuck.c -o brainfuck
+clang -g  src/main.c src/brainfuck.c src/GA.c -o brainfuck
 ./brainfuck $(cat programs/hello_world.bf) ""
