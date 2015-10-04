@@ -68,7 +68,7 @@ def run_genetic_algorithm(spawn_func,
         for candidate in candidates:
             if stop_condition(candidate):
                 end = time.time()
-                print candidate
+                print candidate.this
                 print "Number of Iterations: %d" % num_iter
                 print "Time Taken: %.1f seconds" % (end - start)
                 sys.exit(0)
