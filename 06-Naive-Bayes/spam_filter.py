@@ -4,7 +4,7 @@ import math
 import sys
 
 
-TRAINING_SET = "SMSSpamCollection.txt"
+TRAINING_SET = "corpus/SMSSpamCollection.txt"
 
 
 class Feature(object):
@@ -115,8 +115,8 @@ def main(message_file=None):
     if message_file:
         training_file = TRAINING_SET
     else:
-        training_file = "half_training_set.txt"
-        message_file = "other_half_to_be_categorised.txt"
+        training_file = "corpus/emma/half_training_set.txt"
+        message_file = "corpus/emma/other_half_to_be_categorised.txt"
 
         with open(TRAINING_SET, "r") as f:
             lines = f.readlines()
