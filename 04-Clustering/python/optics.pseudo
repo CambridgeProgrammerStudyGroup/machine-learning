@@ -1,0 +1,78 @@
+OPTICS (SetOfObjects, ε, MinPts, OrderedFile)
+	OrderedFile.open();
+	FOR i FROM 1 TO SetOfObjects.size DO
+		Object := SetOfObjects.get(i);
+		IF NOT Object.Processed THEN
+			ExpandClusterOrder(SetOfObjects, Object, ε, MinPts, OrderedFile)
+	OrderedFile.close()
+
+
+ExpandClusterOrder(SetOfObjects, Object, ε, MinPts, OrderedFile);
+	neighbors := SetOfObjects.neighbors(Object, ε);
+	Object.Processed := TRUE;
+	Object.reachability_distance := UNDEFINED;
+	Object.setCoreDistance(neighbors, ε, MinPts);
+	OrderedFile.write(Object);
+	IF Object.core_distance <> UNDEFINED THEN
+		OrderSeeds.update(neighbors, Object);
+		WHILE NOT OrderSeeds.empty() DO
+			currentObject := OrderSeeds.next();
+			neighbors:=SetOfObjects.neighbors(currentObject, ε);
+			currentObject.Processed := TRUE;
+			currentObject.setCoreDistance(neighbors, ε, MinPts);
+			OrderedFile.write(currentObject);
+			IF currentObject.core_distance<>UNDEFINED THEN
+				OrderSeeds.update(neighbors, currentObject);
+
+
+OrderSeeds::update(neighbors, CenterObject);
+	c_dist := CenterObject.core_distance;
+	FORALL Object FROM neighbors DO
+		IF NOT Object.Processed THEN
+			new_r_dist:=max(c_dist,CenterObject.dist(Object));
+			IF Object.reachability_distance=UNDEFINED THEN
+				Object.reachability_distance := new_r_dist;
+				insert(Object, new_r_dist);
+			ELSE // Object already in OrderSeeds
+				IF new_r_dist<Object.reachability_distance THEN
+					Object.reachability_distance := new_r_dist;
+					decrease(Object, new_r_dist);
+
+ExtractDBSCAN-Clustering (ClusterOrderedObjs,ε’, MinPts)
+	// Precondition: ε' ≤ generating dist ε for ClusterOrderedObjs
+	ClusterId := NOISE;
+	FOR i FROM 1 TO ClusterOrderedObjs.size DO
+		Object := ClusterOrderedObjs.get(i);
+		IF Object.reachability_distance > ε’ THEN
+			// UNDEFINED > ε
+			IF Object.core_distance ≤ ε’ THEN
+				ClusterId := nextId(ClusterId);
+				Object.clusterId := ClusterId;
+			ELSE
+				Object.clusterId := NOISE;
+		ELSE // Object.reachability_distance ≤ ε’
+			Object.clusterId := ClusterId;
+			END; // ExtractDBSCAN-Clustering
+
+
+
+SetOfSteepDownAreas = EmptySet
+SetOfClusters = EmptySet
+index = 0, mib = 0
+WHILE(index < n)
+	mib = max(mib, r(index))
+	IF(start of a steep down area D at index)
+		update mib-values and filter SetOfSteepDownAreas(*)
+		set D.mib = 0
+		add D to the SetOfSteepDownAreas
+		index = end of D + 1; mib = r(index)
+	ELSE IF(start of steep up area U at index)
+		update mib-values and filter SetOfSteepDownAreas
+		index = end of U + 1; mib = r(index)
+		FOR EACH D in SetOfSteepDownAreas DO
+			IF(combination of D and U is valid AND(**)
+				satisfies cluster conditions 1, 2, 3a)
+				compute [s, e] add cluster to SetOfClusters
+	ELSE index = index + 1
+RETURN(SetOfClusters)
+
