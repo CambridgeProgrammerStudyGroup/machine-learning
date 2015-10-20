@@ -9,6 +9,7 @@ import sys
 
 INBREEDING_RATE = 0.25
 MAX_TREE_DEPTH = 25
+POPULATION_SIZE = 100
 
 
 def target(x):
@@ -164,4 +165,4 @@ if __name__ == "__main__":
                              breed_func=breed,
                              fitness_func=calc_fitness,
                              stop_condition=stop_condition,
-                             population_size=100)
+                             population_size=POPULATION_SIZE)

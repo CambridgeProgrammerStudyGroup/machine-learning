@@ -4,19 +4,22 @@
 
 bool DEBUG = false;
 
+
 void interpret(
 	char* prog, int prog_length, 
 	char* input, int input_length,	
 	char* data, int data_length, // input var
-	char* output, int output_length// input var
+	char* output, int output_length,// input var
+	int iter_max
 ){
 	int progi = 0;
 	int inputi = 0;
 	int outputi = 0;
 	int datai = 0;
+	int tick = 0;
 	bool valid = true;
 	
-	while (valid){
+	while (valid && tick < iter_max){
 		
 		// data pointer out of range
 		if(datai >= data_length || datai < 0){break;}
@@ -53,7 +56,11 @@ void interpret(
 						int balance = 1;
 						int pointer = progi-1;
 						while(balance != 0){
-							if(pointer < 0){printf("Could not find matching [ paren!\n");valid=false;break;}
+							if(pointer < 0){
+								//printf("Could not find matching [ paren!\n");
+								valid=false;
+								break;
+							}
 							if(prog[pointer] == ']'){ balance++; }
 							if(prog[pointer] == '['){ balance--; }
 							pointer--;
@@ -66,8 +73,11 @@ void interpret(
 						int balance = 1;
 						int pointer = progi + 1;
 						while(balance != 0){
-							
-							if (pointer >= prog_length){printf("Could not find matching ] paren!\n");valid=false;break;}
+							if (pointer >= prog_length){
+								//printf("Could not find matching ] paren!\n");
+								valid=false;
+								break;
+							}
 							if(prog[pointer] == '['){ balance++; }
 							if(prog[pointer] == ']'){ balance--; }
 							pointer++;
@@ -81,5 +91,6 @@ void interpret(
 		}
 
 		progi++;
+		tick++;
 	}
 }
