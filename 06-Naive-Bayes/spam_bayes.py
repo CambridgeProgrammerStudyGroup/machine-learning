@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 
+import argparse
 import collections
 import pickle
 import re
@@ -85,13 +86,22 @@ def test(fname):
             print("Our guess: {} (spam: {}, ham: {}), {}".format(guess, probability_spam, probability_ham, correct))
 
 def main():
-    if sys.argv[1] == "--train":
-        train(sys.argv[2])
-    elif sys.argv[1] == "--test":
-        test(sys.argv[2])
-    else:
-        train(sys.argv[1])
-        test(sys.argv[1])
+    parser = argparse.ArgumentParser(description="Spam bayes classifier")
+
+    parser.add_argument("--train", action="store_true")
+    parser.add_argument("--test", action="store_true")
+    parser.add_argument("file", nargs="?", default="corpus/SMSSpamCollection.txt", help="the file to read the text from.  Don't use the same file for training and testing ;)")
+
+    args = parser.parse_args()
+
+    if args.train:
+        train(args.file)
+
+    if args.test:
+        test(args.file)
+
+    if not args.train and not args.test:
+        parser.print_help()
 
 if __name__ == "__main__":
     main()
