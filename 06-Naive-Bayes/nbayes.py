@@ -11,24 +11,29 @@
 
 from collections import defaultdict
 import math
-import string
 import random
+import codecs
 
 def tokenize(ls):
     # remove some frequent words, convert to lower case and remove
     # punctuation characters
     forbidden = ["and","to", "i","a", "you", "the", "your", "is"]
     ls = [ w.lower() for w in ls ]
-    ls = [ w.translate(None, string.punctuation) for w in ls ]
     ls = [ w for w in ls if w not in forbidden ]
     ls = [ w for w in ls if len(w) > 0 ]
+    # This seemed like a good idea but it doesn't change results much
+    ls = [ "PHONE" if w.isdigit() else w for w in ls]
     return ls
-
+    
 def main():
+
+    # set this to keep reproducible results
+    random.seed(42)
 
     datafile = "corpus/SMSSpamCollection.txt"
     data = []
-    with open(datafile) as input:
+
+    with codecs.open(datafile, encoding='utf-8') as input:
         for line in input:
             fields = line.split()
             label = fields[0]
