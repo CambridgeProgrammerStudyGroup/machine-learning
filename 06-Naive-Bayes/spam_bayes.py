@@ -50,43 +50,41 @@ def is_spam(text, ham_words, spam_words):
 
     return probability_spam > probability_ham
 
-def train(fname):
+def train_from_file(fin):
     ham_words = collections.defaultdict(int)
     spam_words = collections.defaultdict(int)
 
-    with open(fname) as fin:
-        for line in fin:
-            line_parts = line.split("\t")
-            if line_parts[0] == "ham":
-                classify_words(line_parts[1], ham_words)
-            elif line_parts[0] == "spam":
-                classify_words(line_parts[1], spam_words)
-            else:
-                raise RuntimeError("Unkwnown line: {}".format(line))
+    for line in fin:
+        line_parts = line.split("\t")
+        if line_parts[0] == "ham":
+            classify_words(line_parts[1], ham_words)
+        elif line_parts[0] == "spam":
+            classify_words(line_parts[1], spam_words)
+        else:
+            raise RuntimeError("Unkwnown line: {}".format(line))
 
     with open("brain", "wb") as fout:
         pickle.dump((ham_words, spam_words), fout)
 
-def test(fname):
-    with open("brain", "rb") as fin:
-        (ham_words, spam_words) = pickle.load(fin)
+def classify_file(fin):
+    with open("brain", "rb") as brain_fin:
+        (ham_words, spam_words) = pickle.load(brain_fin)
 
-    with open(fname) as fin:
-        for line in fin:
-            (true_class, text) = line.split("\t")
+    for line in fin:
+        (true_class, text) = line.split("\t")
 
-            spam = is_spam(text, ham_words, spam_words)
+        spam = is_spam(text, ham_words, spam_words)
 
-            guess = "spam" if spam else "ham"
+        guess = "spam" if spam else "ham"
 
-            if (spam and (true_class == "spam")) or \
-               (not spam and (true_class == "ham")):
-                correct = "Correct"
-            else:
-                correct = "incorrect"
-                raise RuntimeError("Incorrect line: {}".format(line))
+        if (spam and (true_class == "spam")) or \
+           (not spam and (true_class == "ham")):
+            correct = "Correct"
+        else:
+            correct = "incorrect"
+            raise RuntimeError("Incorrect line: {}".format(line))
 
-            print("Our guess: {} {}".format(guess, correct))
+    print("Our guess: {} {}".format(guess, correct))
 
 def classify_text(text):
     with open("brain", "rb") as fin:
@@ -103,7 +101,7 @@ def main():
     parser.add_argument("--train", action="store_true")
     parser.add_argument("--test", action="store_true")
     parser.add_argument("-c", "--classify_text", nargs=1)
-    parser.add_argument("file", nargs="?", default="corpus/SMSSpamCollection.txt", help="the file to read the text from.  Don't use the same file for training and testing ;)")
+    parser.add_argument("file", nargs="?", default="corpus/SMSSpamCollection.txt", help="the file to read the text from.  Use - to read from stdin.  Don't use the same file for training and testing ;)")
 
     args = parser.parse_args()
 
@@ -111,10 +109,18 @@ def main():
         return classify_text(args.classify_text[0])
 
     if args.train:
-        train(args.file)
+        if args.file == "-":
+            train_from_file(sys.stdin)
+        else:
+            with open(args.file) as fin:
+                train_from_file(fin)
 
     if args.test:
-        test(args.file)
+        if args.file == "-":
+            classify_file(sys.stdin)
+        else:
+            with open(args.file) as fin:
+                classify_file(fin)
 
     if not args.train and not args.test:
         parser.print_help()
