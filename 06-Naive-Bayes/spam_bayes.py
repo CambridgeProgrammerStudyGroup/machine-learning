@@ -1,4 +1,15 @@
 #!/usr/bin/python3
+#
+# See for https://en.wikipedia.org/wiki/Naive_Bayes_classifier the
+# basic algorithm.
+#
+# You can train it with the first 1000 messages in the corpus:
+#
+#   head -1000 corpus/SMSSpamCollection.txt| ./spam_bayes.py --train -
+#
+# And then test it with the remainig 4574:
+#
+#   tail -4574 corpus/SMSSpamCollection.txt | ./spam_bayes.py --test -
 
 import argparse
 import collections
