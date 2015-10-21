@@ -12,6 +12,7 @@
 from collections import defaultdict
 import math
 import string
+import random
 
 def tokenize(ls):
     # remove some frequent words, convert to lower case and remove
@@ -20,6 +21,7 @@ def tokenize(ls):
     ls = [ w.lower() for w in ls ]
     ls = [ w.translate(None, string.punctuation) for w in ls ]
     ls = [ w for w in ls if w not in forbidden ]
+    ls = [ w for w in ls if len(w) > 0 ]
     return ls
 
 def main():
@@ -35,13 +37,23 @@ def main():
 
     print "Have",len(data)," examples"
 
-    # let's keep 1000 examples separate as test data
+    # number of test data points, we keep them separate from the training data
     num_test = 1000
-    test = data[:num_test]
-    train = data[(num_test+1):]
+    test = []
+    train = []
+    # generate num_test indizes
+    test_idx = set(random.sample(range(len(data)),num_test))
+    for idx,item in enumerate(data):
+        if idx in test_idx:
+            test.append(item)
+        else:
+            train.append(item)
+    #test = data[:num_test]
+    #train = data[(num_test+1):]
 
     # P(word|label)
-    word_llhoods = defaultdict(lambda: defaultdict(lambda: 0.0001))
+    fudge = 10**(-8) # probably for non-existing words
+    word_llhoods = defaultdict(lambda: defaultdict(lambda: fudge))
     # P(label)
     prior = defaultdict(float)
     num_train = len(train)
@@ -56,19 +68,20 @@ def main():
     for k in prior:
         prior[k] /= num_train
 
+    # debugging
+    print "prior=",prior
+    maxSpam = sorted(word_llhoods["spam"].iteritems(), key=lambda x: x[1],reverse=True)[0:5]
+    print "5 most freqent spam word",maxSpam
+    maxHam = sorted(word_llhoods["ham"].iteritems(), key=lambda x: x[1],reverse=True)[0:5]
+    #maxHam = word_llhoods["ham"].iteritems()[0:5]
+    print "5 most frequent ham word",maxHam
+
     spam_sum = sum(word_llhoods["spam"].itervalues())
     for w in word_llhoods["spam"]:
         word_llhoods["spam"][w] /= spam_sum
     ham_sum = sum(word_llhoods["ham"].itervalues())
     for w in word_llhoods["ham"]:
         word_llhoods["ham"][w] /= ham_sum
-
-    # debugging
-    print "prior=",prior
-    maxSpam = sorted(word_llhoods["spam"].iteritems(), key=lambda x: x[1])[0:5]
-    print "5 most freqent spam word",maxSpam
-    maxHam = sorted(word_llhoods["ham"].iteritems(), key=lambda x: x[1])[0:5]
-    print "5 most frequent ham word",maxHam
 
     # read test data
     correct = 0
