@@ -13,6 +13,7 @@
 
 import argparse
 import collections
+import math
 import pickle
 import re
 import sys
@@ -35,8 +36,31 @@ def classify_words(text, word_dict):
         word_dict[word] += 1
 
 def is_spam(text, ham_words, spam_words):
-    probability_ham = 0.5
-    probability_spam = 0.5
+    probability_ham = math.log(0.5)
+    probability_spam = math.log(0.5)
+
+    # Instead of ignoring a word that's present in one of the types
+    # but not the other, we estimate its presence by scaling the
+    # number of ocurrences on the other type.
+    #
+    # I came up with this value by using the one that maximises the
+    # accuracy when testing the last 4574 entries of the corpus.
+    # These are the results I got for other values:
+    #
+    # (.1, 94.38),
+    # (.01, 95.61),
+    # (.001, 95.93),
+    # (.0001, 96.35),
+    # (.00001, 96.39),
+    # (.000001, 96.46),
+    # (.0000001, 96.5),
+    # (.00000001, 96.61),
+    # (1e-9, 96.66),
+    # (1e-10, 96.66),
+    # (1e-11, 96.66)
+    # (1e-12, 96.68)
+    # (1e-90, 96.68)
+    unseen_coeff = 1e-12
 
     words = re.split(r"(?: |,|\.|-|–|:|;|&|=|\+|#|\(|\)|\||<|…|\^|\[|\])+", text)
 
@@ -51,12 +75,24 @@ def is_spam(text, ham_words, spam_words):
 
         ham_instances = ham_words[word]
         spam_instances = spam_words[word]
-        total_instances = ham_instances + spam_instances
-        if total_instances == 0:
-            continue
 
-        probability_ham *= ham_instances / total_instances
-        probability_spam *= spam_instances / total_instances
+        try:
+            log_ham_instances = math.log(ham_instances)
+        except ValueError:
+            if spam_instances:
+                log_ham_instances = math.log(spam_instances * unseen_coeff)
+            else:
+                continue
+
+        try:
+            log_spam_instances = math.log(spam_words[word])
+        except ValueError:
+            log_spam_instances = math.log(ham_instances * unseen_coeff)
+
+        log_total_instances = math.log(ham_instances + spam_instances)
+
+        probability_ham += log_ham_instances - log_total_instances
+        probability_spam += log_spam_instances - log_total_instances
 
     return probability_spam > probability_ham
 
