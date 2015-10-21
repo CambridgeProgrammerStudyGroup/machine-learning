@@ -46,7 +46,6 @@ def is_spam(text, ham_words, spam_words):
 
         probability_ham *= ham_instances / total_instances
         probability_spam *= spam_instances / total_instances
-        print("Spam: {} ham: {}".format(probability_spam, probability_ham))
 
     return probability_spam > probability_ham
 
@@ -70,6 +69,9 @@ def classify_file(fin):
     with open("brain", "rb") as brain_fin:
         (ham_words, spam_words) = pickle.load(brain_fin)
 
+    num_correct = 0
+    num_incorrect = 0
+
     for line in fin:
         (true_class, text) = line.split("\t")
 
@@ -79,12 +81,13 @@ def classify_file(fin):
 
         if (spam and (true_class == "spam")) or \
            (not spam and (true_class == "ham")):
-            correct = "Correct"
+            num_correct += 1
         else:
-            correct = "incorrect"
-            raise RuntimeError("Incorrect line: {}".format(line))
+            num_incorrect += 1
 
-    print("Our guess: {} {}".format(guess, correct))
+    total = num_correct + num_incorrect
+    print("Correct: {}/{} ({:.2%})".format(num_correct, total,
+                                           num_correct / total))
 
 def classify_text(text):
     with open("brain", "rb") as fin:
