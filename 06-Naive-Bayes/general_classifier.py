@@ -25,6 +25,9 @@ class Classifier(object):
 		return self.featurecounts[label][feature] / self.labelcounts[label]
 
 	def p_feature(self,feature):
+		# This function is broken and wrong...
+		# It makes the assumption that the feature probabilities are class independent
+		# That's just not the case...
 		feature_total = 0.0
 		for label in self.labels:
 			feature_total += self.featurecounts[label][feature]
