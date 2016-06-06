@@ -5,3 +5,4 @@ Clone this repository and submit a pull request with your solution to an exercis
 # Resources
 
 - [Data Science in Python resources](https://github.com/ujjwalkarn/DataSciencePython)
+- [Blackbox Machine Learning Challenge](http://blackboxchallenge.com/home/)
