@@ -6,3 +6,4 @@ Clone this repository and submit a pull request with your solution to an exercis
 
 - [Data Science in Python resources](https://github.com/ujjwalkarn/DataSciencePython)
 - [Blackbox Machine Learning Challenge](http://blackboxchallenge.com/home/)
+- [Machine Learning Algorithms](https://github.com/rushter/MLAlgorithms)
